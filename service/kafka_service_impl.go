@@ -1,44 +1,32 @@
 package service
 
 import (
-	"fmt"
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"context"
+	"errors"
+	"github.com/segmentio/kafka-go"
 )
 
 type KafkaServiceImpl struct {
-	producer *kafka.Producer
+	writer *kafka.Writer
 }
 
-func NewKafkaService(kafkaProducer *kafka.Producer) KafkaService {
+func NewKafkaService(kafkaWriter *kafka.Writer) KafkaService {
 	return &KafkaServiceImpl{
-		producer: kafkaProducer,
+		writer: kafkaWriter,
 	}
 }
 
-func (service *KafkaServiceImpl) Publish(eventMessage string, topic string) {
-	message := &kafka.Message{
-        // TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
-        TopicPartition: kafka.TopicPartition{Topic: &topic},
-        Value:          []byte(eventMessage),
-    }
+func (service *KafkaServiceImpl) Publish(data string) (string, error) {
+    eventMessage := kafka.Message{
+		Value: []byte(data),
+	}
+    ctx := context.Background()
+	err := service.writer.WriteMessages(ctx, eventMessage)
 
-    // Publish the message to the Kafka topic
-    err := service.producer.Produce(message, nil)
-    if err != nil {
-        fmt.Println("Failed to produce message: %s", err)
-    }
-
-	// Wait for the delivery report
-	event := <-service.producer.Events()
-    msg := event.(*kafka.Message)
-
-    if msg.TopicPartition.Error != nil {
-        fmt.Printf("Failed to deliver message: %v\n", msg.TopicPartition.Error)
-    } else {
-        fmt.Printf("Message delivered to topic %s [%d] at offset %v\n",
-            *msg.TopicPartition.Topic, msg.TopicPartition.Partition, msg.TopicPartition.Offset)
-    }
-
-    // Flush the producer to ensure all events are delivered
-    service.producer.Flush(15 * 1000)
+	var message string
+	if err != nil {
+        return message, errors.New("Failed to publish event")
+	}
+	message = "Successfully published event"
+	return message, nil
 }

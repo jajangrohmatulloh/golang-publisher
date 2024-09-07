@@ -18,7 +18,7 @@ func NewUserRepository(db *sql.DB) UserRepository {
 }
 
 func (repository *UserRepositoryImpl) FindByUsername(ctx context.Context, username string) (domain.User, error) {
-	SQL := "select id, first_name, last_name, password from category where username = ?"
+	SQL := "select id, first_name, last_name, password from users where username = ?"
 	rows, err := repository.DB.QueryContext(ctx, SQL, username)
 	user := domain.User{}
 	if err != nil {

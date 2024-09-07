@@ -6,5 +6,5 @@ type UserEvent struct {
 	Id uint64 `json:"id"`
 	Nama string `json:"nama"`
 	LoginDatetime time.Time `json:"login_datetime"`
-	Agent string `json:"agent"`
+	Agents string `json:"agents"`
 }

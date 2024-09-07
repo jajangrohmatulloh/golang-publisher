@@ -4,6 +4,5 @@ type User struct {
 	Id         uint64
 	FirstName string
 	LastName  string
-	Username   string
 	Password   string
 }

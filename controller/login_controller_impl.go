@@ -31,33 +31,52 @@ func (controller *LoginControllerImpl) LoginPageHandler(w http.ResponseWriter, r
 
 func (controller *LoginControllerImpl) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
+	
 	username := r.FormValue("username")
-    // password := r.FormValue("password")
+    password := r.FormValue("password")
 	
 	ctx := context.Background()
 	userData, err := controller.UserRepository.FindByUsername(ctx, username)
 	if err != nil {
-		fmt.Fprintf(w, "username did not exist")
+		fmt.Fprintln(w, "Username did not exist")
+		return
 	}
 
-	// isMatch := helper.CheckPassword(password, userData.Password)
-	// if isMatch != true {
-	// 	fmt.Fprintf(w, "Login unsuccessfull")
-	// }
+	isMatch := helper.CheckPassword(password, userData.Password)
+	if isMatch {
+		fmt.Fprintln(w, "Login successfull ")
+	} else {
+		fmt.Fprintln(w, "Password did not match")
+		return
+	}
+
+	// cookie := http.Cookie{
+    //     Name:     "my-cookie",
+    //     Value:    "my-cookie",
+    //     Path:     "/",
+    //     Expires:  time.Now().Add(365 * 24 * time.Hour),
+    //     HttpOnly: true,
+    // }
+    // http.SetCookie(w, &cookie)
 
 	userEvent := &event.UserEvent{}
 	userEvent.Id = userData.Id
 	userEvent.Nama = userData.FirstName + " " + userData.LastName
 	userEvent.LoginDatetime = now
-	userEvent.Agent = r.UserAgent()
+	userEvent.Agents = r.UserAgent()
 
-	eventMessage, err := helper.ToString(userEvent)
+	eventData, err := helper.ToString(userEvent)
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Fprintln(w, eventData)
 
-	controller.KafkaService.Publish(eventMessage, "my-topic")
+	message, err := controller.KafkaService.Publish(eventData)
+	if err != nil {
+		fmt.Fprintln(w, err.Error())
+		return
+	}
+	fmt.Fprintln(w, message)
 
-	fmt.Fprintf(w, "Login successfull")
 }
 
