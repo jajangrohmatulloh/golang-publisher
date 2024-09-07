@@ -32,7 +32,7 @@ func (controller *LoginControllerImpl) LoginPageHandler(w http.ResponseWriter, r
 func (controller *LoginControllerImpl) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	username := r.FormValue("username")
-    password := r.FormValue("password")
+    // password := r.FormValue("password")
 	
 	ctx := context.Background()
 	userData, err := controller.UserRepository.FindByUsername(ctx, username)
@@ -40,10 +40,10 @@ func (controller *LoginControllerImpl) LoginHandler(w http.ResponseWriter, r *ht
 		fmt.Fprintf(w, "username did not exist")
 	}
 
-	isMatch := helper.CheckPassword(password, userData.Password)
-	if isMatch != true {
-		fmt.Fprintf(w, "Login unsuccessfull")
-	}
+	// isMatch := helper.CheckPassword(password, userData.Password)
+	// if isMatch != true {
+	// 	fmt.Fprintf(w, "Login unsuccessfull")
+	// }
 
 	userEvent := &event.UserEvent{}
 	userEvent.Id = userData.Id

@@ -19,19 +19,20 @@ func main() {
 	// }
 	// fmt.Println("Password match!")
 
-	producer, err := kafka.NewProducer(&kafka.ConfigMap{
-        "bootstrap.servers": "localhost:9092",
-    })
+	// producer, err := kafka.NewProducer(&kafka.ConfigMap{
+    //     "bootstrap.servers": "localhost:9092",
+    // })
 
-	if err != nil {
-        fmt.Println("Failed to create producer: %s", err)
-    }
-    defer producer.Close()
+	// if err != nil {
+    //     fmt.Println("Failed to create producer: %s", err)
+    // }
+    // defer producer.Close()
 
 
 	db := app.NewDB()
 	userRepository := repository.NewUserRepository(db)
-	kafkaService := service.NewKafkaService(producer)
+	// kafkaService := service.NewKafkaService(producer)
+	// loginController := controller.NewLoginController(userRepository, kafkaService)
 	loginController := controller.NewLoginController(userRepository, kafkaService)
 
 	var handler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
@@ -47,7 +48,7 @@ func main() {
 		Handler: handler,
 	}
 
-	err = server.ListenAndServe()
+	err := server.ListenAndServe()
 	if err != nil {
 		panic(err)
 	}

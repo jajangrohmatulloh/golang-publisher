@@ -7,7 +7,7 @@ import (
 )
 
 func NewDB() *sql.DB {
-	db, err := sql.Open("mysql", "root@tcp(localhost:3307)/universe_digital")
+	db, err := sql.Open("mysql", "root:root@tcp(localhost:3307)/universe_digital")
 	if err != nil {
 		panic(err)
 	}
