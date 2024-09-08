@@ -10,27 +10,30 @@ import (
 	"publisher/repository"
 	"publisher/service"
 	"time"
+	"embed"
 )
 
 type LoginControllerImpl struct {
 	UserRepository repository.UserRepository
 	KafkaService service.KafkaService
+	tmpl *template.Template
 }
 
-func NewLoginController(userRepository repository.UserRepository, kafkaService service.KafkaService) LoginController {
+func NewLoginController(userRepository repository.UserRepository, kafkaService service.KafkaService, templates *embed.FS) LoginController {
 	return &LoginControllerImpl{
 		UserRepository: userRepository,
 		KafkaService: kafkaService,
+		tmpl: template.Must(template.ParseFS(templates, "templates/*.gohtml")),
 	}
 }
 
 func (controller *LoginControllerImpl) LoginPageHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("templates/login.gohtml"))
-    tmpl.Execute(w, nil)
+    controller.tmpl.Execute(w, "login.gohtml")
 }
 
 func (controller *LoginControllerImpl) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	now := time.Now()
+	wibTimeZone, _ := time.LoadLocation("Asia/Jakarta")
+	now := time.Now().In(wibTimeZone).Format("2006-01-02 15:04:05 -0700")
 	
 	username := r.FormValue("username")
     password := r.FormValue("password")
@@ -49,15 +52,6 @@ func (controller *LoginControllerImpl) LoginHandler(w http.ResponseWriter, r *ht
 		fmt.Fprintln(w, "Password did not match")
 		return
 	}
-
-	// cookie := http.Cookie{
-    //     Name:     "my-cookie",
-    //     Value:    "my-cookie",
-    //     Path:     "/",
-    //     Expires:  time.Now().Add(365 * 24 * time.Hour),
-    //     HttpOnly: true,
-    // }
-    // http.SetCookie(w, &cookie)
 
 	userEvent := &event.UserEvent{}
 	userEvent.Id = userData.Id

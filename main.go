@@ -1,19 +1,23 @@
 package main
 
 import (
+	"embed"
 	"net/http"
 	"publisher/app"
 	"publisher/controller"
 	"publisher/repository"
 	"publisher/service"
+
 	"github.com/segmentio/kafka-go"
 )
 
+//go:embed templates
+var templates embed.FS
 func main() {
 
 	const (
 		topic = "my-topic"
-		brokerAddress = "localhost:9092"
+		brokerAddress = "kafka:9092"
 	)
 	writer := kafka.NewWriter(kafka.WriterConfig{
 		Brokers:  []string{brokerAddress},
@@ -24,19 +28,11 @@ func main() {
 	db := app.NewDB()
 	userRepository := repository.NewUserRepository(db)
 	kafkaService := service.NewKafkaService(writer)
-	loginController := controller.NewLoginController(userRepository, kafkaService)
+	loginController := controller.NewLoginController(userRepository, kafkaService, &templates)
 	router := app.NewRouter(loginController)
 
-	// var handler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
-	// 	if r.Method == http.MethodGet {
-    //         loginController.LoginPageHandler(w, r)
-    //     } else if r.Method == http.MethodPost {
-    //         loginController.LoginHandler(w, r)
-    //     }
-	// }
-
 	server := http.Server{
-		Addr: "localhost:8080",
+		Addr: "0.0.0.0:8080",
 		Handler: router,
 	}
 
